@@ -27,8 +27,8 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
 	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
 
-	var wg sync.WaitGroup
-	wg.Add(len(routerAddresses))
+	var wg1 sync.WaitGroup
+	wg1.Add(len(routerAddresses))
 
 	for _, routerAddress := range routerAddresses {
 		go func(r string) {
@@ -40,36 +40,44 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 				log.Fatal(err)
 			}
 
+			var wg2 sync.WaitGroup
+			wg2.Add(len(addresses.STABLE_ADDRESSES))
+
 			for _, stableAddress := range addresses.STABLE_ADDRESSES {
-				stableAddress := common.HexToAddress(stableAddress)
+				go func(s string) {
+					stableAddress := common.HexToAddress(s)
 
-				stableInstance, err := erc_20.NewErc20Caller(stableAddress, client)
-				if err != nil {
-					log.Fatal(err)
-				}
+					stableInstance, err := erc_20.NewErc20Caller(stableAddress, client)
+					if err != nil {
+						log.Fatal(err)
+					}
 
-				stableDecimals, err := stableInstance.Decimals(options)
-				if err != nil {
-					log.Fatal(err)
-				}
+					stableDecimals, err := stableInstance.Decimals(options)
+					if err != nil {
+						log.Fatal(err)
+					}
 
-				stableAmount := 1000
+					stableAmount := 1000
 
-				amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
+					amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
 
-				amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
-				if err != nil {
-					log.Fatal(err)
-				}
+					amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
+					if err != nil {
+						log.Fatal(err)
+					}
 
-				pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
+					pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
+
+					wg2.Done()
+				}(stableAddress)
 			}
+			wg2.Wait()
 
-			wg.Done()
+			wg1.Done()
 		}(routerAddress)
 	}
 
-	wg.Wait()
+	wg1.Wait()
 
 	return pairs
 }
