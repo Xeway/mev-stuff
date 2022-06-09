@@ -18,9 +18,15 @@ import (
 )
 
 func GetAllUniswapPairs(client *ethclient.Client, factoryAddresses []string) {
+	// this map is structured like that : pairs[address of stablecoin like USDC] = [pair of exchange A, pair of exchange B...]
+	pairs := make(map[common.Address][]common.Address)
+
+	executorWallet := common.HexToAddress(addresses.UNISWAP_FACTORY_ADDRESS)
+	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
+
 	for _, address := range factoryAddresses {
 		address := common.HexToAddress(address)
-		executorWallet := common.HexToAddress(addresses.UNISWAP_FACTORY_ADDRESS)
 
 		instance, err := uniswap_factory.NewUniswapFactoryCaller(address, client)
 
@@ -28,24 +34,18 @@ func GetAllUniswapPairs(client *ethclient.Client, factoryAddresses []string) {
 			log.Fatal(err)
 		}
 
-		options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+		for _, stableAddress := range addresses.STABLE_ADDRESSES {
+			stableAddress := common.HexToAddress(stableAddress)
 
-		p, err := instance.AllPairsLength(options)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		pairLength := p.Uint64()
-
-		for i := uint64(0); i < pairLength; i++ {
-			pair, err := instance.AllPairs(options, big.NewInt(int64(i)))
+			getPair, err := instance.GetPair(options, wethAddress, stableAddress)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Println(pair)
+			pairs[stableAddress] = append(pairs[stableAddress], getPair)
 		}
 	}
+	fmt.Println(pairs)
 }
 
 func GetLatestBlock(client ethclient.Client) *Models.Block {
