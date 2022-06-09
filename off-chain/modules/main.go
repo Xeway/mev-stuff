@@ -31,8 +31,8 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 	wg.Add(len(routerAddresses))
 
 	for _, routerAddress := range routerAddresses {
-		go func() {
-			routerAddress := common.HexToAddress(routerAddress)
+		go func(r string) {
+			routerAddress := common.HexToAddress(r)
 
 			instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
 
@@ -66,7 +66,7 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 			}
 
 			wg.Done()
-		}()
+		}(routerAddress)
 	}
 
 	wg.Wait()
