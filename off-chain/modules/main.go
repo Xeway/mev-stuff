@@ -7,12 +7,46 @@ import (
 	"log"
 	"math/big"
 
+	uniswap_factory "github.com/Xeway/mev-stuff/abi/go"
+	"github.com/Xeway/mev-stuff/addresses"
 	Models "github.com/Xeway/mev-stuff/models"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
+func GetAllUniswapPairs(client *ethclient.Client, factoryAddresses []string) {
+	for _, address := range factoryAddresses {
+		address := common.HexToAddress(address)
+		executorWallet := common.HexToAddress(addresses.UNISWAP_FACTORY_ADDRESS)
+
+		instance, err := uniswap_factory.NewUniswapFactoryCaller(address, client)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+
+		p, err := instance.AllPairsLength(options)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		pairLength := p.Uint64()
+
+		for i := uint64(0); i < pairLength; i++ {
+			pair, err := instance.AllPairs(options, big.NewInt(int64(i)))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(pair)
+		}
+	}
+}
 
 func GetLatestBlock(client ethclient.Client) *Models.Block {
 	defer func() {
