@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"sync"
 
 	erc_20 "github.com/Xeway/mev-stuff/abi/go/erc_20"
 	uniswap_router "github.com/Xeway/mev-stuff/abi/go/uniswap_router"
@@ -26,40 +27,49 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
 	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
 
+	var wg sync.WaitGroup
+	wg.Add(len(routerAddresses))
+
 	for _, routerAddress := range routerAddresses {
-		routerAddress := common.HexToAddress(routerAddress)
+		go func() {
+			routerAddress := common.HexToAddress(routerAddress)
 
-		instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
+			instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
 
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, stableAddress := range addresses.STABLE_ADDRESSES {
-			stableAddress := common.HexToAddress(stableAddress)
-
-			stableInstance, err := erc_20.NewErc20Caller(stableAddress, client)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			stableDecimals, err := stableInstance.Decimals(options)
-			if err != nil {
-				log.Fatal(err)
+			for _, stableAddress := range addresses.STABLE_ADDRESSES {
+				stableAddress := common.HexToAddress(stableAddress)
+
+				stableInstance, err := erc_20.NewErc20Caller(stableAddress, client)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				stableDecimals, err := stableInstance.Decimals(options)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				stableAmount := 1000
+
+				amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
+
+				amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
 			}
 
-			stableAmount := 1000
-
-			amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
-
-			amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
-		}
+			wg.Done()
+		}()
 	}
+
+	wg.Wait()
 
 	return pairs
 }
