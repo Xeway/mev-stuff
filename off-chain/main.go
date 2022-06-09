@@ -16,5 +16,6 @@ func main() {
 		fmt.Println(err)
 	}
 
-	modules.GetAllUniswapPairs(client, addresses.FACTORY_ADDRESSES)
+	pairs := modules.GetAllUniswapPairs(client, addresses.ROUTER_ADDRESSES)
+	fmt.Println(pairs)
 }

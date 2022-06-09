@@ -7,7 +7,8 @@ import (
 	"log"
 	"math/big"
 
-	uniswap_factory "github.com/Xeway/mev-stuff/abi/go"
+	erc_20 "github.com/Xeway/mev-stuff/abi/go/erc_20"
+	uniswap_router "github.com/Xeway/mev-stuff/abi/go/uniswap_router"
 	"github.com/Xeway/mev-stuff/addresses"
 	Models "github.com/Xeway/mev-stuff/models"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -17,18 +18,18 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetAllUniswapPairs(client *ethclient.Client, factoryAddresses []string) {
-	// this map is structured like that : pairs[address of stablecoin like USDC] = [pair of exchange A, pair of exchange B...]
-	pairs := make(map[common.Address][]common.Address)
+func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[common.Address][]*big.Int {
+	// this map is structured like that : pairs[address of stablecoin like USDC] = [return amount of stablecoin of exchange A, return amount of stablecoin of exchange B...]
+	pairs := make(map[common.Address][]*big.Int)
 
-	executorWallet := common.HexToAddress(addresses.UNISWAP_FACTORY_ADDRESS)
+	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
 	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
 
-	for _, address := range factoryAddresses {
-		address := common.HexToAddress(address)
+	for _, routerAddress := range routerAddresses {
+		routerAddress := common.HexToAddress(routerAddress)
 
-		instance, err := uniswap_factory.NewUniswapFactoryCaller(address, client)
+		instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
 
 		if err != nil {
 			log.Fatal(err)
@@ -37,15 +38,28 @@ func GetAllUniswapPairs(client *ethclient.Client, factoryAddresses []string) {
 		for _, stableAddress := range addresses.STABLE_ADDRESSES {
 			stableAddress := common.HexToAddress(stableAddress)
 
-			getPair, err := instance.GetPair(options, wethAddress, stableAddress)
+			stableInstance, err := erc_20.NewErc20Caller(stableAddress, client)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			pairs[stableAddress] = append(pairs[stableAddress], getPair)
+			stableDecimals, err := stableInstance.Decimals(options)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			amountIn := big.NewInt(0).Mul(big.NewInt(1000), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
+
+			amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
 		}
 	}
-	fmt.Println(pairs)
+
+	return pairs
 }
 
 func GetLatestBlock(client ethclient.Client) *Models.Block {
