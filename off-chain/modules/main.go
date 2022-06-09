@@ -48,7 +48,9 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 				log.Fatal(err)
 			}
 
-			amountIn := big.NewInt(0).Mul(big.NewInt(1000), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
+			stableAmount := 1000
+
+			amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
 
 			amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
 			if err != nil {
