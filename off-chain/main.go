@@ -16,6 +16,8 @@ func main() {
 		fmt.Println(err)
 	}
 
-	pairs := modules.GetAllUniswapPairs(client, addresses.ROUTER_ADDRESSES)
-	fmt.Println(pairs)
+	stableAmount := 1000
+
+	amountsOut := modules.GetAllUniswapAmountOut(client, addresses.ROUTER_ADDRESSES, stableAmount)
+	fmt.Println(amountsOut)
 }
