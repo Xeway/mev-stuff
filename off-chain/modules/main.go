@@ -19,9 +19,9 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[common.Address][]*big.Int {
+func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[common.Address][](map[common.Address]*big.Int) {
 	// this map is structured like that : pairs[address of stablecoin like USDC] = [return amount of stablecoin of exchange A, return amount of stablecoin of exchange B...]
-	pairs := make(map[common.Address][]*big.Int)
+	pairs := make(map[common.Address][](map[common.Address]*big.Int))
 
 	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
@@ -66,7 +66,10 @@ func GetAllUniswapPairs(client *ethclient.Client, routerAddresses []string) map[
 						log.Fatal(err)
 					}
 
-					pairs[stableAddress] = append(pairs[stableAddress], amountOut[1])
+					exchangeToAmount := make(map[common.Address]*big.Int)
+					exchangeToAmount[routerAddress] = amountOut[1]
+
+					pairs[stableAddress] = append(pairs[stableAddress], exchangeToAmount)
 
 					wg2.Done()
 				}(stableAddress)
