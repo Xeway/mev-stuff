@@ -19,9 +19,14 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][](map[common.Address]*big.Int) {
-	// this map is structured like that : amountsOut[address of stablecoin like USDC] = an array of the amount out according to the exchange
-	amountsOut := make(map[common.Address][](map[common.Address]*big.Int))
+type ExchangeAndAmount struct {
+	ExchangeAddr common.Address
+	AmountOut    *big.Int
+}
+
+func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
+	// this map is structured like that : amountsOut[address of stablecoin like USDC] = an struct that contain the exchange + the amount out
+	amountsOut := make(map[common.Address][]ExchangeAndAmount)
 
 	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
@@ -64,10 +69,10 @@ func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[comm
 						log.Fatal(err)
 					}
 
-					exchangeToAmount := make(map[common.Address]*big.Int)
-					exchangeToAmount[routerAddress] = amountOut[1]
-
-					amountsOut[stableAddress] = append(amountsOut[stableAddress], exchangeToAmount)
+					amountsOut[stableAddress] = append(amountsOut[stableAddress], ExchangeAndAmount{
+						ExchangeAddr: routerAddress,
+						AmountOut:    amountOut[1],
+					})
 
 					wg2.Done()
 				}(stableAddress)
@@ -91,29 +96,27 @@ type Opportunity struct {
 	WorstExchange common.Address
 }
 
-func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][](map[common.Address]*big.Int)) Opportunity {
+func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][]ExchangeAndAmount) Opportunity {
 	var bestOpportunity Opportunity
 
 	bestDelta := big.NewInt(0)
 
-	for stableAddr, exchangeToAmount := range amountsOut { // we get every array ordered by exchange according to each stable coin
+	for stableAddr, exchangeToAmount := range amountsOut { // we get an array that contains all amount and exchange address
 		bestAmount := big.NewInt(0)
 		var bestExchange common.Address
 
 		worstAmount := big.NewInt(0)
 		var worstExchange common.Address
 
-		for i, mapE2A := range exchangeToAmount { // we get every map exchange => amount
-			for exchangeAddr, amount := range mapE2A { // we get the exchange address and the amount
-				if amount.Cmp(bestAmount) == 1 {
-					bestAmount = amount
-					bestExchange = exchangeAddr
-				}
+		for i, exAndAm := range exchangeToAmount { // we get every struct ExchangeAndAmount
+			if exAndAm.AmountOut.Cmp(bestAmount) == 1 {
+				bestAmount = exAndAm.AmountOut
+				bestExchange = exAndAm.ExchangeAddr
+			}
 
-				if amount.Cmp(worstAmount) == -1 || i == 0 {
-					worstAmount = amount
-					worstExchange = exchangeAddr
-				}
+			if exAndAm.AmountOut.Cmp(worstAmount) == -1 || i == 0 {
+				worstAmount = exAndAm.AmountOut
+				worstExchange = exAndAm.ExchangeAddr
 			}
 		}
 
