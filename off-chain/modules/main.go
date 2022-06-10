@@ -84,11 +84,11 @@ func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[comm
 }
 
 type Opportunity struct {
-	stable        common.Address
-	bestAmount    *big.Int
-	bestExchange  common.Address
-	worstAmount   *big.Int
-	worstExchange common.Address
+	Stable        common.Address
+	BestAmount    *big.Int
+	BestExchange  common.Address
+	WorstAmount   *big.Int
+	WorstExchange common.Address
 }
 
 func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][](map[common.Address]*big.Int)) Opportunity {
@@ -123,11 +123,11 @@ func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common
 			bestDelta = amountDelta
 
 			bestOpportunity = Opportunity{
-				stable:        stableAddr,
-				bestAmount:    bestAmount,
-				bestExchange:  bestExchange,
-				worstAmount:   worstAmount,
-				worstExchange: worstExchange,
+				Stable:        stableAddr,
+				BestAmount:    bestAmount,
+				BestExchange:  bestExchange,
+				WorstAmount:   worstAmount,
+				WorstExchange: worstExchange,
 			}
 		}
 
