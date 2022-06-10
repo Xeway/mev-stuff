@@ -18,5 +18,6 @@ func main() {
 	stableAmount := 1000
 
 	amountsOut := modules.GetAllUniswapAmountOut(client, stableAmount)
-	fmt.Println(amountsOut)
+	bestOpportunity := modules.GetBestArbitrageOpportunity(client, amountsOut)
+	fmt.Println(bestOpportunity)
 }

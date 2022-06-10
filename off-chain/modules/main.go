@@ -83,6 +83,59 @@ func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[comm
 	return amountsOut
 }
 
+type Opportunity struct {
+	stable        common.Address
+	bestAmount    *big.Int
+	bestExchange  common.Address
+	worstAmount   *big.Int
+	worstExchange common.Address
+}
+
+func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][](map[common.Address]*big.Int)) Opportunity {
+	var bestOpportunity Opportunity
+
+	bestDelta := big.NewInt(0)
+
+	for stableAddr, exchangeToAmount := range amountsOut { // we get every array ordered by exchange according to each stable coin
+		bestAmount := big.NewInt(0)
+		var bestExchange common.Address
+
+		worstAmount := big.NewInt(0)
+		var worstExchange common.Address
+
+		for i, mapE2A := range exchangeToAmount { // we get every map exchange => amount
+			for exchangeAddr, amount := range mapE2A { // we get the exchange address and the amount
+				if amount.Cmp(bestAmount) == 1 {
+					bestAmount = amount
+					bestExchange = exchangeAddr
+				}
+
+				if amount.Cmp(worstAmount) == -1 || i == 0 {
+					worstAmount = amount
+					worstExchange = exchangeAddr
+				}
+			}
+		}
+
+		amountDelta := big.NewInt(0).Sub(bestAmount, worstAmount)
+
+		if amountDelta.Cmp(bestDelta) == 1 {
+			bestDelta = amountDelta
+
+			bestOpportunity = Opportunity{
+				stable:        stableAddr,
+				bestAmount:    bestAmount,
+				bestExchange:  bestExchange,
+				worstAmount:   worstAmount,
+				worstExchange: worstExchange,
+			}
+		}
+
+	}
+
+	return bestOpportunity
+}
+
 func GetLatestBlock(client ethclient.Client) *Models.Block {
 	defer func() {
 		if err := recover(); err != nil {
