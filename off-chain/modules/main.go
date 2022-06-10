@@ -19,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func GetAllUniswapAmountOut(client *ethclient.Client, routerAddresses []string, stableAmount int) map[common.Address][](map[common.Address]*big.Int) {
+func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][](map[common.Address]*big.Int) {
 	// this map is structured like that : amountsOut[address of stablecoin like USDC] = an array of the amount out according to the exchange
 	amountsOut := make(map[common.Address][](map[common.Address]*big.Int))
 
@@ -28,9 +28,9 @@ func GetAllUniswapAmountOut(client *ethclient.Client, routerAddresses []string, 
 	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
 
 	var wg1 sync.WaitGroup
-	wg1.Add(len(routerAddresses))
+	wg1.Add(len(addresses.ROUTER_ADDRESSES))
 
-	for _, routerAddress := range routerAddresses {
+	for _, routerAddress := range addresses.ROUTER_ADDRESSES {
 		go func(r string) {
 			routerAddress := common.HexToAddress(r)
 

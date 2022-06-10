@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/Xeway/mev-stuff/addresses"
 	"github.com/Xeway/mev-stuff/modules"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -18,6 +17,6 @@ func main() {
 
 	stableAmount := 1000
 
-	amountsOut := modules.GetAllUniswapAmountOut(client, addresses.ROUTER_ADDRESSES, stableAmount)
+	amountsOut := modules.GetAllUniswapAmountOut(client, stableAmount)
 	fmt.Println(amountsOut)
 }
