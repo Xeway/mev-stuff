@@ -1,3 +1,6 @@
 [submodule "on-chain/external_contracts/aave-v3-core"]
 	path = on-chain/external_contracts/aave-v3-core
 	url = https://github.com/aave/aave-v3-core.git
+[submodule "on-chain/external_contracts/v2-periphery"]
+	path = on-chain/external_contracts/v2-periphery
+	url = https://github.com/Uniswap/v2-periphery.git
