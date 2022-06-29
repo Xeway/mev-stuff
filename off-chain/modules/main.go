@@ -24,6 +24,59 @@ type ExchangeAndAmount struct {
 	AmountOut    *big.Int
 }
 
+func GetAllUniswapRates(client *ethclient.Client, amount int64) [][]*big.Int {
+	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
+	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+
+	routerAddress := common.HexToAddress(addresses.UNISWAP_ROUTER_ADDRESS)
+	instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	graph := make([][]*big.Int, len(addresses.TOKEN_ADDRESSES))
+
+	for i, src := range addresses.TOKEN_ADDRESSES {
+		tokenAddrSrc := common.HexToAddress(src)
+
+		graph[i] = make([]*big.Int, len(addresses.TOKEN_ADDRESSES))
+
+		tokenInstance, err := erc_20.NewErc20Caller(tokenAddrSrc, client)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tokenDecimals, err := tokenInstance.Decimals(options)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		amount := big.NewInt(0).Mul(big.NewInt(int64(amount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(tokenDecimals)), nil))
+
+		for j, dest := range addresses.TOKEN_ADDRESSES {
+			tokenAddrDest := common.HexToAddress(dest)
+
+			var rate *big.Int
+
+			if tokenAddrSrc == tokenAddrDest {
+				rate = big.NewInt(1)
+			} else {
+				res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{tokenAddrSrc, tokenAddrDest})
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				rate = res[1]
+			}
+
+			graph[i][j] = rate
+		}
+	}
+
+	return graph
+}
+
 func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
 	// this map is structured like that : amountsOut[address of stablecoin like USDC] = an struct that contain the exchange + the amount out
 	amountsOut := make(map[common.Address][]ExchangeAndAmount)
