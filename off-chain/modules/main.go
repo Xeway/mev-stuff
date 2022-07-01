@@ -24,7 +24,7 @@ type ExchangeAndAmount struct {
 	AmountOut    *big.Int
 }
 
-func GetAllUniswapRates(client *ethclient.Client, amount int64) [][]*big.Int {
+func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
 	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
 
