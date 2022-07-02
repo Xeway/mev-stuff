@@ -89,12 +89,12 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 	for i, tokens := range graph {
 		newGraph[i] = make([]float64, len(tokens))
 
-		for j, _ := range tokens {
-			isOf := isOverflow(graph[i][j])
+		for j, rate := range tokens {
+			isOf := isOverflow(rate)
 
 			if isOf {
 				num := make([]*big.Int, 0)
-				num = append(num, big.NewInt(0).Sqrt(graph[i][j]))
+				num = append(num, big.NewInt(0).Sqrt(rate))
 				firstIteration := true
 				for isOf {
 					if firstIteration {
@@ -114,7 +114,7 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 
 				newGraph[i][j] = float64(bigNumLog)
 			} else {
-				newGraph[i][j] = math.Log10(float64(graph[i][j].Int64()))
+				newGraph[i][j] = math.Log10(float64(rate.Int64()))
 			}
 		}
 	}
