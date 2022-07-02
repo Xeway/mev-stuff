@@ -18,8 +18,9 @@ func main() {
 	amount := int64(1)
 
 	graph := modules.GetAllRates(client, amount)
+	bestPath := modules.FindBestPath(graph)
 
-	fmt.Println(graph)
+	fmt.Println(graph, "\n\n\n", bestPath)
 
 	// amountsOut := modules.GetAllUniswapAmountOut(client, amount)
 	// bestOpportunity := modules.GetBestArbitrageOpportunity(client, amountsOut)

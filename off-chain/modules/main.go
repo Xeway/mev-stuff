@@ -5,7 +5,9 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
+	"strconv"
 	"sync"
 
 	erc_20 "github.com/Xeway/mev-stuff/abi/go/erc_20"
@@ -75,6 +77,54 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 	}
 
 	return graph
+}
+
+func isOverflow(bigNum *big.Int) bool {
+	return bigNum.String() != strconv.Itoa(int(bigNum.Int64()))
+}
+
+func parseGraph(graph [][]*big.Int) [][]float64 {
+	newGraph := make([][]float64, len(graph))
+
+	for i, tokens := range graph {
+		newGraph[i] = make([]float64, len(tokens))
+
+		for j, _ := range tokens {
+			isOf := isOverflow(graph[i][j])
+
+			if isOf {
+				num := make([]*big.Int, 0)
+				num = append(num, big.NewInt(0).Sqrt(graph[i][j]))
+				firstIteration := true
+				for isOf {
+					if firstIteration {
+						firstIteration = false
+					} else {
+						num = append(num, big.NewInt(0).Sqrt(num[len(num)-1]))
+					}
+					isOf = isOverflow(num[len(num)-1])
+				}
+
+				numMul := math.Pow(2, float64(len(num)))
+
+				bigNumLog := int64(0)
+				for k := 0; k < int(numMul); k++ {
+					bigNumLog += num[len(num)-1].Int64()
+				}
+
+				newGraph[i][j] = float64(bigNumLog)
+			} else {
+				newGraph[i][j] = math.Log10(float64(graph[i][j].Int64()))
+			}
+		}
+	}
+
+	return newGraph
+}
+
+func FindBestPath(graph [][]*big.Int) [][]float64 {
+	newGraph := parseGraph(graph)
+	return newGraph
 }
 
 func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
