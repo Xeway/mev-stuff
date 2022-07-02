@@ -102,39 +102,55 @@ func isOverflow(bigNum *big.Int) bool {
 func parseGraph(graph [][]*big.Int) [][]float64 {
 	newGraph := make([][]float64, len(graph))
 
+	var wg1 sync.WaitGroup
+	wg1.Add(len(graph))
+
 	for i, tokens := range graph {
-		newGraph[i] = make([]float64, len(tokens))
+		go func(i int, tokens []*big.Int) {
+			newGraph[i] = make([]float64, len(tokens))
 
-		for j, rate := range tokens {
-			isOf := isOverflow(rate)
+			var wg2 sync.WaitGroup
+			wg2.Add(len(tokens))
 
-			if isOf {
-				num := make([]*big.Int, 0)
+			for j, rate := range tokens {
+				go func(j int, rate *big.Int) {
+					isOf := isOverflow(rate)
 
-				firstIteration := true
-				for isOf {
-					if firstIteration {
-						num = append(num, big.NewInt(0).Sqrt(rate))
-						firstIteration = false
+					if isOf {
+						num := make([]*big.Int, 0)
+
+						firstIteration := true
+						for isOf {
+							if firstIteration {
+								num = append(num, big.NewInt(0).Sqrt(rate))
+								firstIteration = false
+							} else {
+								num = append(num, big.NewInt(0).Sqrt(num[len(num)-1]))
+							}
+							isOf = isOverflow(num[len(num)-1])
+						}
+
+						numMul := math.Pow(2, float64(len(num)))
+
+						var bigNumLog float64
+						for k := 0; k < int(numMul); k++ {
+							bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
+						}
+
+						newGraph[i][j] = -bigNumLog
 					} else {
-						num = append(num, big.NewInt(0).Sqrt(num[len(num)-1]))
+						newGraph[i][j] = -math.Log10(float64(rate.Int64()))
 					}
-					isOf = isOverflow(num[len(num)-1])
-				}
 
-				numMul := math.Pow(2, float64(len(num)))
-
-				var bigNumLog float64
-				for k := 0; k < int(numMul); k++ {
-					bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
-				}
-
-				newGraph[i][j] = -bigNumLog
-			} else {
-				newGraph[i][j] = -math.Log10(float64(rate.Int64()))
+					wg2.Done()
+				}(j, rate)
 			}
-		}
+			wg2.Wait()
+
+			wg1.Done()
+		}(i, tokens)
 	}
+	wg1.Wait()
 
 	return newGraph
 }
