@@ -113,9 +113,9 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 					bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
 				}
 
-				newGraph[i][j] = bigNumLog
+				newGraph[i][j] = -bigNumLog
 			} else {
-				newGraph[i][j] = math.Log10(float64(rate.Int64()))
+				newGraph[i][j] = -math.Log10(float64(rate.Int64()))
 			}
 		}
 	}
