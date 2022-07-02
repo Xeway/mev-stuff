@@ -39,42 +39,58 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 
 	graph := make([][]*big.Int, len(addresses.TOKEN_ADDRESSES))
 
+	var wg1 sync.WaitGroup
+	wg1.Add(len(addresses.TOKEN_ADDRESSES))
+
 	for i, src := range addresses.TOKEN_ADDRESSES {
-		tokenAddrSrc := common.HexToAddress(src)
+		go func(i int, src string) {
+			tokenAddrSrc := common.HexToAddress(src)
 
-		graph[i] = make([]*big.Int, len(addresses.TOKEN_ADDRESSES))
+			graph[i] = make([]*big.Int, len(addresses.TOKEN_ADDRESSES))
 
-		tokenInstance, err := erc_20.NewErc20Caller(tokenAddrSrc, client)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		tokenDecimals, err := tokenInstance.Decimals(options)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		amount := big.NewInt(0).Mul(big.NewInt(int64(amount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(tokenDecimals)), nil))
-
-		for j, dest := range addresses.TOKEN_ADDRESSES {
-			tokenAddrDest := common.HexToAddress(dest)
-
-			var rate *big.Int
-
-			if tokenAddrSrc == tokenAddrDest {
-				rate = big.NewInt(1)
-			} else {
-				res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{tokenAddrSrc, tokenAddrDest})
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				rate = res[1]
+			tokenInstance, err := erc_20.NewErc20Caller(tokenAddrSrc, client)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			graph[i][j] = rate
-		}
+			tokenDecimals, err := tokenInstance.Decimals(options)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			amount := big.NewInt(0).Mul(big.NewInt(int64(amount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(tokenDecimals)), nil))
+
+			var wg2 sync.WaitGroup
+			wg2.Add(len(addresses.TOKEN_ADDRESSES))
+
+			for j, dest := range addresses.TOKEN_ADDRESSES {
+				go func(j int, dest string) {
+					tokenAddrDest := common.HexToAddress(dest)
+
+					var rate *big.Int
+
+					if tokenAddrSrc == tokenAddrDest {
+						rate = big.NewInt(1)
+					} else {
+						res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{tokenAddrSrc, tokenAddrDest})
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						rate = res[1]
+					}
+
+					graph[i][j] = rate
+
+					wg2.Done()
+				}(j, dest)
+			}
+			wg2.Wait()
+
+			wg1.Done()
+		}(i, src)
 	}
+	wg1.Wait()
 
 	return graph
 }
