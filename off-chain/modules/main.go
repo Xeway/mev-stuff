@@ -94,10 +94,11 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 
 			if isOf {
 				num := make([]*big.Int, 0)
-				num = append(num, big.NewInt(0).Sqrt(rate))
+
 				firstIteration := true
 				for isOf {
 					if firstIteration {
+						num = append(num, big.NewInt(0).Sqrt(rate))
 						firstIteration = false
 					} else {
 						num = append(num, big.NewInt(0).Sqrt(num[len(num)-1]))
