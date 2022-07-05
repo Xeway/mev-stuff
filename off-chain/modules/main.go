@@ -155,8 +155,61 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 	return newGraph
 }
 
+func checkIfPresentInArray(pre int, printCycle []int) bool {
+	for _, val := range printCycle {
+		if val == pre {
+			return false
+		}
+	}
+
+	return true
+}
+
 func FindBestPath(graph [][]*big.Int) [][]float64 {
 	newGraph := parseGraph(graph)
+
+	dist := make([]float64, len(graph))
+	dist[0] = float64(0)
+	for y := 1; y < len(dist); y++ {
+		dist[y] = math.Inf(1)
+	}
+
+	pre := make([]int, len(graph))
+	for w := range pre {
+		pre[w] = -1
+	}
+
+	for z := 0; z < len(graph)-1; z++ {
+		for i, src := range graph {
+			for j, dest := range src {
+				if dist[i]+float64(dest.Int64()) < dist[j] {
+					dist[j] = dist[i] + float64(dest.Int64())
+
+					pre[j] = i
+				}
+			}
+		}
+	}
+
+	for i, src := range graph {
+		for j, dest := range src {
+			if dist[i]+float64(dest.Int64()) < dist[j] {
+				printCycle := make([]int, 2)
+				printCycle[0] = j
+				printCycle[1] = i
+
+				for checkIfPresentInArray(pre[i], printCycle) {
+					printCycle = append(printCycle, pre[i])
+					i = pre[i]
+				}
+				printCycle = append(printCycle, pre[i])
+
+				fmt.Println(printCycle)
+			}
+		}
+	}
+	fmt.Println("dist:", dist, "\n\n\n")
+
 	return newGraph
 }
 
