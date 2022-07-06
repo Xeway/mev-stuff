@@ -208,7 +208,6 @@ func FindBestPath(graph [][]*big.Int) [][]float64 {
 			}
 		}
 	}
-	fmt.Println("dist:", dist, "\n\n\n")
 
 	return newGraph
 }
