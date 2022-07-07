@@ -133,9 +133,18 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 						numMul := math.Pow(2, float64(len(num)))
 
 						var bigNumLog float64
+
+						var wg3 sync.WaitGroup
+						wg3.Add(int(numMul))
+
 						for k := 0; k < int(numMul); k++ {
-							bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
+							go func() {
+								bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
+
+								wg3.Done()
+							}()
 						}
+						wg3.Wait()
 
 						newGraph[i][j] = -bigNumLog
 					} else {
