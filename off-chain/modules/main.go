@@ -165,10 +165,26 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 }
 
 func checkIfPresentInArray(pre int, printCycle []int) bool {
+	c := make(chan bool)
+
+	counter := len(printCycle)
+
 	for _, val := range printCycle {
-		if val == pre {
-			return false
-		}
+		go func(val int, counter *int) {
+			if val == pre {
+				c <- true
+			}
+
+			*counter--
+
+			if *counter == 0 {
+				close(c)
+			}
+		}(val, &counter)
+	}
+
+	for _ = range c {
+		return false
 	}
 
 	return true
