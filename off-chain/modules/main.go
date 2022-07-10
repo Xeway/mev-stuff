@@ -190,6 +190,14 @@ func checkIfPresentInArray(pre int, printCycle []int) bool {
 	return true
 }
 
+func ReverseArray(arr []int) []int {
+	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
+		arr[i], arr[j] = arr[j], arr[i]
+	}
+
+	return arr
+}
+
 func FindBestPath(graph [][]*big.Int) []int {
 	newGraph := parseGraph(graph)
 
@@ -231,6 +239,8 @@ func FindBestPath(graph [][]*big.Int) []int {
 					i = pre[i]
 				}
 				printCycle = append(printCycle, pre[i])
+
+				printCycle = ReverseArray(printCycle)
 
 				var sum float64
 				for k := 0; k < len(printCycle)-1; k++ {
