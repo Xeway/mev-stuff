@@ -193,22 +193,22 @@ func checkIfPresentInArray(pre int, printCycle []int) bool {
 func FindBestPath(graph [][]*big.Int) [][]float64 {
 	newGraph := parseGraph(graph)
 
-	dist := make([]float64, len(graph))
+	dist := make([]float64, len(newGraph))
 	dist[0] = float64(0)
 	for y := 1; y < len(dist); y++ {
 		dist[y] = math.Inf(1)
 	}
 
-	pre := make([]int, len(graph))
+	pre := make([]int, len(newGraph))
 	for w := range pre {
 		pre[w] = -1
 	}
 
-	for z := 0; z < len(graph)-1; z++ {
-		for i, src := range graph {
+	for z := 0; z < len(newGraph)-1; z++ {
+		for i, src := range newGraph {
 			for j, dest := range src {
-				if dist[i]+float64(dest.Int64()) < dist[j] {
-					dist[j] = dist[i] + float64(dest.Int64())
+				if dist[i]+dest < dist[j] {
+					dist[j] = dist[i] + dest
 
 					pre[j] = i
 				}
@@ -216,9 +216,9 @@ func FindBestPath(graph [][]*big.Int) [][]float64 {
 		}
 	}
 
-	for i, src := range graph {
+	for i, src := range newGraph {
 		for j, dest := range src {
-			if dist[i]+float64(dest.Int64()) < dist[j] {
+			if dist[i]+dest < dist[j] {
 				printCycle := make([]int, 2)
 				printCycle[0] = j
 				printCycle[1] = i
