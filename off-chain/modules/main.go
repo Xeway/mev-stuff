@@ -190,7 +190,7 @@ func checkIfPresentInArray(pre int, printCycle []int) bool {
 	return true
 }
 
-func FindBestPath(graph [][]*big.Int) [][]float64 {
+func FindBestPath(graph [][]*big.Int) []int {
 	newGraph := parseGraph(graph)
 
 	dist := make([]float64, len(newGraph))
@@ -216,6 +216,9 @@ func FindBestPath(graph [][]*big.Int) [][]float64 {
 		}
 	}
 
+	var bestPath []int
+	bestSum := float64(0)
+
 	for i, src := range newGraph {
 		for j, dest := range src {
 			if dist[i]+dest < dist[j] {
@@ -229,12 +232,19 @@ func FindBestPath(graph [][]*big.Int) [][]float64 {
 				}
 				printCycle = append(printCycle, pre[i])
 
-				fmt.Println(printCycle)
+				var sum float64
+				for k := 0; k < len(printCycle)-1; k++ {
+					sum += newGraph[printCycle[k]][printCycle[k+1]]
+				}
+				if sum < bestSum {
+					bestSum = sum
+					bestPath = printCycle
+				}
 			}
 		}
 	}
 
-	return newGraph
+	return bestPath
 }
 
 func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
