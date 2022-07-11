@@ -198,7 +198,7 @@ func ReverseArray(arr []int) []int {
 	return arr
 }
 
-func FindBestPath(graph [][]*big.Int) []int {
+func FindBestPath(graph [][]*big.Int) []string {
 	newGraph := parseGraph(graph)
 
 	dist := make([]float64, len(newGraph))
@@ -254,7 +254,12 @@ func FindBestPath(graph [][]*big.Int) []int {
 		}
 	}
 
-	return bestPath
+	bestPathAddr := make([]string, len(bestPath))
+	for _, v := range bestPath {
+		bestPathAddr = append(bestPathAddr, addresses.TOKEN_ADDRESSES[v])
+	}
+
+	return bestPathAddr
 }
 
 func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
