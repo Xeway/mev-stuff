@@ -183,7 +183,7 @@ func checkIfPresentInArray(pre int, printCycle []int) bool {
 		}(val, &counter)
 	}
 
-	for _ = range c {
+	for range c {
 		return false
 	}
 
