@@ -28,7 +28,7 @@ type ExchangeAndAmount struct {
 
 func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
-	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+	options := &bind.CallOpts{Pending: true, From: executorWallet, BlockNumber: nil, Context: context.Background()}
 
 	routerAddress := common.HexToAddress(addresses.UNISWAP_ROUTER_ADDRESS)
 	instanceRouter, err := uniswap_router.NewUniswapRouterCaller(routerAddress, client)
@@ -267,7 +267,7 @@ func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[comm
 	amountsOut := make(map[common.Address][]ExchangeAndAmount)
 
 	executorWallet := common.HexToAddress(addresses.EXECUTOR_WALLET)
-	options := &bind.CallOpts{true, executorWallet, nil, context.Background()}
+	options := &bind.CallOpts{Pending: true, From: executorWallet, BlockNumber: nil, Context: context.Background()}
 	wethAddress := common.HexToAddress(addresses.WETH_ADDRESS)
 
 	var wg1 sync.WaitGroup
