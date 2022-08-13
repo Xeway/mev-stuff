@@ -7,9 +7,9 @@ import (
 	"log"
 	"math"
 	"math/big"
-	"strconv"
 	"sync"
 
+	bigmath "github.com/Xeway/big-math"
 	erc_20 "github.com/Xeway/mev-stuff/abi/go/erc_20"
 	uniswap_router "github.com/Xeway/mev-stuff/abi/go/uniswap_router"
 	"github.com/Xeway/mev-stuff/addresses"
@@ -95,10 +95,6 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 	return graph
 }
 
-func isOverflow(bigNum *big.Int) bool {
-	return bigNum.String() != strconv.Itoa(int(bigNum.Int64()))
-}
-
 func parseGraph(graph [][]*big.Int) [][]float64 {
 	newGraph := make([][]float64, len(graph))
 
@@ -114,42 +110,7 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 
 			for j, rate := range tokens {
 				go func(j int, rate *big.Int) {
-					isOf := isOverflow(rate)
-
-					if isOf {
-						num := make([]*big.Int, 0)
-
-						firstIteration := true
-						for isOf {
-							if firstIteration {
-								num = append(num, big.NewInt(0).Sqrt(rate))
-								firstIteration = false
-							} else {
-								num = append(num, big.NewInt(0).Sqrt(num[len(num)-1]))
-							}
-							isOf = isOverflow(num[len(num)-1])
-						}
-
-						numMul := math.Pow(2, float64(len(num)))
-
-						var bigNumLog float64
-
-						var wg3 sync.WaitGroup
-						wg3.Add(int(numMul))
-
-						for k := 0; k < int(numMul); k++ {
-							go func() {
-								bigNumLog += math.Log10(float64(num[len(num)-1].Int64()))
-
-								wg3.Done()
-							}()
-						}
-						wg3.Wait()
-
-						newGraph[i][j] = -bigNumLog
-					} else {
-						newGraph[i][j] = -math.Log10(float64(rate.Int64()))
-					}
+					newGraph[i][j] = -bigmath.Log10(rate)
 
 					wg2.Done()
 				}(j, rate)
