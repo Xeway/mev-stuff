@@ -201,6 +201,13 @@ func FindBestPath(graph [][]*big.Int) []string {
 				}
 				printCycle = append(printCycle, pre[i])
 
+				for l := 0; l < len(printCycle); l++ {
+					if printCycle[l] == printCycle[len(printCycle)-1] {
+						printCycle = printCycle[l:]
+						break
+					}
+				}
+
 				printCycle = ReverseArray(printCycle)
 
 				var sum float64
