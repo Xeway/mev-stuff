@@ -3,6 +3,7 @@ package modules
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -159,7 +160,7 @@ func ReverseArray(arr []int) []int {
 	return arr
 }
 
-func FindBestPath(graph [][]*big.Int) []string {
+func FindBestPath(graph [][]*big.Int) ([]string, error) {
 	newGraph := parseGraph(graph)
 
 	dist := make([]float64, len(newGraph))
@@ -208,6 +209,10 @@ func FindBestPath(graph [][]*big.Int) []string {
 					}
 				}
 
+				if len(printCycle) <= 3 {
+					return []string{}, errors.New("no arbitrage opportunity")
+				}
+
 				printCycle = ReverseArray(printCycle)
 
 				var sum float64
@@ -227,7 +232,7 @@ func FindBestPath(graph [][]*big.Int) []string {
 		bestPathAddr = append(bestPathAddr, addresses.TOKEN_ADDRESSES[v])
 	}
 
-	return bestPathAddr
+	return bestPathAddr, nil
 }
 
 func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {

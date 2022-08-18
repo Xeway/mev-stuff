@@ -13,7 +13,12 @@ func EvaluateArb(client *ethclient.Client) {
 	amount := int64(1)
 
 	graph := modules.GetAllRates(client, amount)
-	bestPath := modules.FindBestPath(graph)
+	bestPath, err := modules.FindBestPath(graph)
+	// if no arbitrage opportunity, try again
+	if err != nil {
+		fmt.Println(err)
+		EvaluateArb(client)
+	}
 
 	fmt.Println(graph, "\n\n\n", bestPath)
 
