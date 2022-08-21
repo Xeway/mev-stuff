@@ -1,33 +1,30 @@
-package main
+package query
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
+type Pair struct {
+	Id     string `json:"id"`
+	Token0 struct {
+		Id string `json:"id"`
+	} `json:"token0"`
+	Token1 struct {
+		Id string `json:"id"`
+	} `json:"token1"`
+	ReserveETH string `json:"reserveETH"`
+}
+
 type ResStruct struct {
 	Data struct {
-		Pairs []struct {
-			Id     string `json:"id"`
-			Token0 struct {
-				Id     string `json:"id"`
-				Symbol string `json:"symbol"`
-			} `json:"token0"`
-			Token1 struct {
-				Id     string `json:"id"`
-				Symbol string `json:"symbol"`
-			} `json:"token1"`
-			ReserveETH string `json:"reserveETH"`
-			ReserveUSD string `json:"reserveUSD"`
-			VolumeUSD  string `json:"volumeUSD"`
-		} `json:"pairs"`
+		Pairs []Pair `json:"pairs"`
 	} `json:"data"`
 }
 
-func main() {
+func GetPairsWithMostReserves() []Pair {
 	jsonData := map[string]string{
 		"query": `
 			{
@@ -39,15 +36,11 @@ func main() {
 					id
 					token0 {
 						id
-						symbol
 					}
 					token1 {
 						id
-						symbol
 					}
 					reserveETH
-					reserveUSD
-					volumeUSD
 				}
 			}
 		`,
@@ -55,29 +48,29 @@ func main() {
 
 	jsonReq, err := json.Marshal(jsonData)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	client := &http.Client{}
 
 	rawRes, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 	defer rawRes.Body.Close()
 
 	data, err := ioutil.ReadAll(rawRes.Body)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	var res ResStruct
 	json.Unmarshal(data, &res)
 
-	fmt.Println(res.Data.Pairs)
+	return res.Data.Pairs
 }

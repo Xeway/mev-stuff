@@ -126,27 +126,11 @@ func parseGraph(graph [][]*big.Int) [][]float64 {
 	return newGraph
 }
 
-func checkIfPresentInArray(pre int, printCycle []int) bool {
-	c := make(chan bool)
-
-	counter := len(printCycle)
-
-	for _, val := range printCycle {
-		go func(val int, counter *int) {
-			if val == pre {
-				c <- true
-			}
-
-			*counter--
-
-			if *counter == 0 {
-				close(c)
-			}
-		}(val, &counter)
-	}
-
-	for range c {
-		return false
+func CheckIfNotPresentInArray[G comparable](wanted G, arr []G) bool {
+	for _, val := range arr {
+		if val == wanted {
+			return false
+		}
 	}
 
 	return true
@@ -196,7 +180,7 @@ func FindBestPath(graph [][]*big.Int) ([]string, error) {
 				printCycle[0] = j
 				printCycle[1] = i
 
-				for checkIfPresentInArray(pre[i], printCycle) {
+				for CheckIfNotPresentInArray(pre[i], printCycle) {
 					printCycle = append(printCycle, pre[i])
 					i = pre[i]
 				}

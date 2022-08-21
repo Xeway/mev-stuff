@@ -5,9 +5,21 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Xeway/mev-stuff/addresses"
 	"github.com/Xeway/mev-stuff/modules"
+	"github.com/Xeway/mev-stuff/query"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
+func QueryBiggestPairs() {
+	pairs := query.GetPairsWithMostReserves()
+
+	for i := 0; i < len(pairs); i++ {
+		if modules.CheckIfNotPresentInArray(pairs[i].Id, addresses.TOKEN_ADDRESSES) {
+			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Id)
+		}
+	}
+}
 
 func EvaluateArb(client *ethclient.Client) {
 	amount := int64(1)
@@ -35,6 +47,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	QueryBiggestPairs()
 
 	currentHeader, _ := client.HeaderByNumber(context.Background(), nil)
 	currentBlock := currentHeader.Number.Int64()
