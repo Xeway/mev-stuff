@@ -28,7 +28,7 @@ var (
 		DAI_ADDRESS,
 	}
 
-	TOKEN_ADDRESSES = []string{}
+	TOKEN_ADDRESSES = make([]string, 0)
 
 	EXECUTOR_WALLET string = "0xE4E6dC19efd564587C46dCa2ED787e45De17E7E1"
 )

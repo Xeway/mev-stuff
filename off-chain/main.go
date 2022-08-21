@@ -15,8 +15,12 @@ func QueryBiggestPairs() {
 	pairs := query.GetPairsWithMostReserves()
 
 	for i := 0; i < len(pairs); i++ {
-		if modules.CheckIfNotPresentInArray(pairs[i].Id, addresses.TOKEN_ADDRESSES) {
-			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Id)
+		if modules.CheckIfNotPresentInArray(pairs[i].Token0.Id, addresses.TOKEN_ADDRESSES) {
+			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token0.Id)
+		}
+
+		if modules.CheckIfNotPresentInArray(pairs[i].Token1.Id, addresses.TOKEN_ADDRESSES) {
+			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token1.Id)
 		}
 	}
 }
