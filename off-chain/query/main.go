@@ -18,9 +18,15 @@ type Pair struct {
 	ReserveETH string `json:"reserveETH"`
 }
 
+type Token struct {
+	Id       string `json:"id"`
+	Decimals string `json:"decimals"`
+}
+
 type ResStruct struct {
 	Data struct {
-		Pairs []Pair `json:"pairs"`
+		Pairs  []Pair  `json:"pairs"`
+		Tokens []Token `json:"tokens"`
 	} `json:"data"`
 }
 
@@ -46,6 +52,33 @@ func GetPairsWithMostReserves() []Pair {
 		`,
 	}
 
+	res := requestTheGraph(jsonData)
+
+	return res.Data.Pairs
+}
+
+func GetTokensWithMostVolume() []Token {
+	jsonData := map[string]string{
+		"query": `
+			{
+				tokens(
+					first: 100
+					orderBy: tradeVolumeUSD
+					orderDirection: desc
+				) {
+					id
+					decimals
+				}
+			}
+		`,
+	}
+
+	res := requestTheGraph(jsonData)
+
+	return res.Data.Tokens
+}
+
+func requestTheGraph(jsonData map[string]string) ResStruct {
 	jsonReq, err := json.Marshal(jsonData)
 	if err != nil {
 		panic(err)
@@ -72,5 +105,5 @@ func GetPairsWithMostReserves() []Pair {
 	var res ResStruct
 	json.Unmarshal(data, &res)
 
-	return res.Data.Pairs
+	return res
 }

@@ -1,5 +1,12 @@
 package addresses
 
+import "github.com/ethereum/go-ethereum/common"
+
+type Token struct {
+	Address  common.Address
+	Decimals int64
+}
+
 var (
 	UNISWAP_ROUTER_ADDRESS   string = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 	SUSHISWAP_ROUTER_ADDRESS string = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"
@@ -28,7 +35,9 @@ var (
 		DAI_ADDRESS,
 	}
 
-	TOKEN_ADDRESSES = make([]string, 0)
+	TOKEN_ADDRESSES = make([]Token, 0)
+
+	PAIR_ADDRESSES = make([]common.Address, 0)
 
 	EXECUTOR_WALLET string = "0xE4E6dC19efd564587C46dCa2ED787e45De17E7E1"
 )

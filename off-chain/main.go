@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Xeway/mev-stuff/addresses"
 	"github.com/Xeway/mev-stuff/modules"
 	"github.com/Xeway/mev-stuff/query"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -15,13 +17,31 @@ func QueryBiggestPairs() {
 	pairs := query.GetPairsWithMostReserves()
 
 	for i := 0; i < len(pairs); i++ {
-		if modules.CheckIfNotPresentInArray(pairs[i].Token0.Id, addresses.TOKEN_ADDRESSES) {
-			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token0.Id)
+		addresses.PAIR_ADDRESSES = append(addresses.PAIR_ADDRESSES, common.HexToAddress(pairs[i].Id))
+	}
+}
+
+func QueryBiggestTokens() {
+	// Alternative : you can query for the biggest pairs on Uniswap, then use these tokens that are probably liquids
+	/* pairs := query.GetPairsWithMostReserves()
+
+	if modules.CheckIfNotPresentInArray(pairs[i].Token0.Id, addresses.TOKEN_ADDRESSES) {
+		addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token0.Id)
+	}
+
+	if modules.CheckIfNotPresentInArray(pairs[i].Token1.Id, addresses.TOKEN_ADDRESSES) {
+		addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token1.Id)
+	} */
+
+	tokens := query.GetTokensWithMostVolume()
+
+	for i := 0; i < len(tokens); i++ {
+		decimals, err := strconv.Atoi(tokens[i].Decimals)
+		if err != nil {
+			panic(err)
 		}
 
-		if modules.CheckIfNotPresentInArray(pairs[i].Token1.Id, addresses.TOKEN_ADDRESSES) {
-			addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token1.Id)
-		}
+		addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, addresses.Token{Address: common.HexToAddress(tokens[i].Id), Decimals: int64(decimals)})
 	}
 }
 
@@ -52,7 +72,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	QueryBiggestPairs()
+	QueryBiggestTokens()
 
 	currentHeader, _ := client.HeaderByNumber(context.Background(), nil)
 	currentBlock := currentHeader.Number.Int64()

@@ -44,12 +44,10 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 	wg1.Add(len(addresses.TOKEN_ADDRESSES))
 
 	for i, src := range addresses.TOKEN_ADDRESSES {
-		go func(i int, src string) {
-			tokenAddrSrc := common.HexToAddress(src)
-
+		go func(i int, src addresses.Token) {
 			graph[i] = make([]*big.Int, len(addresses.TOKEN_ADDRESSES))
 
-			tokenInstance, err := erc_20.NewErc20Caller(tokenAddrSrc, client)
+			tokenInstance, err := erc_20.NewErc20Caller(src.Address, client)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -65,15 +63,13 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 			wg2.Add(len(addresses.TOKEN_ADDRESSES))
 
 			for j, dest := range addresses.TOKEN_ADDRESSES {
-				go func(j int, dest string) {
-					tokenAddrDest := common.HexToAddress(dest)
-
+				go func(j int, dest addresses.Token) {
 					var rate *big.Int
 
-					if tokenAddrSrc == tokenAddrDest {
+					if src.Address == dest.Address {
 						rate = big.NewInt(1)
 					} else {
-						res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{tokenAddrSrc, tokenAddrDest})
+						res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{src.Address, dest.Address})
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -144,7 +140,7 @@ func ReverseArray(arr []int) []int {
 	return arr
 }
 
-func FindBestPath(graph [][]*big.Int) ([]string, error) {
+func FindBestPath(graph [][]*big.Int) ([]common.Address, error) {
 	newGraph := parseGraph(graph)
 
 	dist := make([]float64, len(newGraph))
@@ -194,7 +190,7 @@ func FindBestPath(graph [][]*big.Int) ([]string, error) {
 				}
 
 				if len(printCycle) <= 3 {
-					return []string{}, errors.New("no arbitrage opportunity")
+					return []common.Address{}, errors.New("no arbitrage opportunity")
 				}
 
 				printCycle = ReverseArray(printCycle)
@@ -211,9 +207,9 @@ func FindBestPath(graph [][]*big.Int) ([]string, error) {
 		}
 	}
 
-	bestPathAddr := make([]string, len(bestPath))
+	bestPathAddr := make([]common.Address, len(bestPath))
 	for _, v := range bestPath {
-		bestPathAddr = append(bestPathAddr, addresses.TOKEN_ADDRESSES[v])
+		bestPathAddr = append(bestPathAddr, addresses.TOKEN_ADDRESSES[v].Address)
 	}
 
 	return bestPathAddr, nil
