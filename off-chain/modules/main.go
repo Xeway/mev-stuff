@@ -42,17 +42,7 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 		go func(i int, src addresses.Token) {
 			graph[i] = make([]*big.Int, len(addresses.TOKEN_ADDRESSES))
 
-			tokenInstance, err := erc_20.NewErc20Caller(src.Address, client)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			tokenDecimals, err := tokenInstance.Decimals(options)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			amount := big.NewInt(0).Mul(big.NewInt(int64(amount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(tokenDecimals)), nil))
+			amount := big.NewInt(0).Mul(big.NewInt(int64(amount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(src.Decimals), nil))
 
 			var wg2 sync.WaitGroup
 			wg2.Add(len(addresses.TOKEN_ADDRESSES))
