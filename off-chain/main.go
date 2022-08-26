@@ -36,6 +36,11 @@ func QueryBiggestTokens() {
 	tokens := query.GetTokensWithMostVolume()
 
 	for i := 0; i < len(tokens); i++ {
+		// if token is a shitcoin
+		if tokens[i].Decimals == "0" {
+			continue
+		}
+
 		decimals, err := strconv.Atoi(tokens[i].Decimals)
 		if err != nil {
 			panic(err)

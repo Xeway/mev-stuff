@@ -56,10 +56,10 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 					} else {
 						res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{src.Address, dest.Address})
 						if err != nil {
-							log.Fatal(err)
+							rate = big.NewInt(0)
+						} else {
+							rate = res[1]
 						}
-
-						rate = res[1]
 					}
 
 					graph[i][j] = rate

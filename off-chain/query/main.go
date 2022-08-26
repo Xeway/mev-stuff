@@ -3,7 +3,7 @@ package query
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -97,7 +97,7 @@ func requestTheGraph(jsonData map[string]string) ResStruct {
 	}
 	defer rawRes.Body.Close()
 
-	data, err := ioutil.ReadAll(rawRes.Body)
+	data, err := io.ReadAll(rawRes.Body)
 	if err != nil {
 		panic(err)
 	}
