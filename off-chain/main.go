@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Xeway/mev-stuff/addresses"
-	"github.com/Xeway/mev-stuff/modules"
+	"github.com/Xeway/mev-stuff/arb"
 	"github.com/Xeway/mev-stuff/query"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -25,11 +25,11 @@ func QueryBiggestTokens() {
 	// Alternative : you can query for the biggest pairs on Uniswap, then use these tokens that are probably liquids
 	/* pairs := query.GetPairsWithMostReserves()
 
-	if modules.CheckIfNotPresentInArray(pairs[i].Token0.Id, addresses.TOKEN_ADDRESSES) {
+	if arb.CheckIfNotPresentInArray(pairs[i].Token0.Id, addresses.TOKEN_ADDRESSES) {
 		addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token0.Id)
 	}
 
-	if modules.CheckIfNotPresentInArray(pairs[i].Token1.Id, addresses.TOKEN_ADDRESSES) {
+	if arb.CheckIfNotPresentInArray(pairs[i].Token1.Id, addresses.TOKEN_ADDRESSES) {
 		addresses.TOKEN_ADDRESSES = append(addresses.TOKEN_ADDRESSES, pairs[i].Token1.Id)
 	} */
 
@@ -53,8 +53,8 @@ func QueryBiggestTokens() {
 func EvaluateArb(client *ethclient.Client) {
 	amount := int64(1)
 
-	graph := modules.GetAllRates(client, amount)
-	bestPath, err := modules.FindBestPath(graph)
+	graph := arb.GetAllRates(client, amount)
+	bestPath, err := arb.FindBestPath(graph)
 	// if no arbitrage opportunity, try again
 	if err != nil {
 		fmt.Println(err)
@@ -63,8 +63,8 @@ func EvaluateArb(client *ethclient.Client) {
 
 	fmt.Println(graph, "\n\n\n", bestPath)
 
-	// amountsOut := modules.GetAllUniswapAmountOut(client, amount)
-	// bestOpportunity := modules.GetBestArbitrageOpportunity(client, amountsOut)
+	// amountsOut := arb.GetAllUniswapAmountOut(client, amount)
+	// bestOpportunity := arb.GetBestArbitrageOpportunity(client, amountsOut)
 	// fmt.Println(bestOpportunity)
 }
 
