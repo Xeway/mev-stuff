@@ -1,3 +1,5 @@
+// Functions to perform arbitrages on the same token but on different exchanges
+
 package arb
 
 import (
