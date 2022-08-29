@@ -21,7 +21,7 @@ type ExchangeAndAmount struct {
 	AmountOut    *big.Int
 }
 
-func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[common.Address][]ExchangeAndAmount {
+func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int64) map[common.Address][]ExchangeAndAmount {
 	// this map is structured like that : amountsOut[address of stablecoin like USDC] = an struct that contain the exchange + the amount out
 	amountsOut := make(map[common.Address][]ExchangeAndAmount)
 
@@ -59,7 +59,7 @@ func GetAllUniswapAmountOut(client *ethclient.Client, stableAmount int) map[comm
 						log.Fatal(err)
 					}
 
-					amountIn := big.NewInt(0).Mul(big.NewInt(int64(stableAmount)), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
+					amountIn := big.NewInt(0).Mul(big.NewInt(stableAmount), big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil))
 
 					amountOut, err := instanceRouter.GetAmountsOut(options, amountIn, []common.Address{stableAddress, wethAddress})
 					if err != nil {
@@ -93,7 +93,7 @@ type Opportunity struct {
 	WorstExchange common.Address
 }
 
-func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][]ExchangeAndAmount) Opportunity {
+func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common.Address][]ExchangeAndAmount) (Opportunity, error) {
 	var bestOpportunity Opportunity
 
 	bestDelta := big.NewInt(0)
@@ -133,5 +133,5 @@ func GetBestArbitrageOpportunity(client *ethclient.Client, amountsOut map[common
 
 	}
 
-	return bestOpportunity
+	return bestOpportunity, nil
 }

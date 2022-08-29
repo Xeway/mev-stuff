@@ -1,4 +1,4 @@
-package main
+package token_arb
 
 import (
 	"context"
@@ -7,19 +7,11 @@ import (
 	"time"
 
 	"github.com/Xeway/mev-stuff/addresses"
-	"github.com/Xeway/mev-stuff/arb"
+	arb "github.com/Xeway/mev-stuff/arb_utils"
 	"github.com/Xeway/mev-stuff/query"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
-
-func QueryBiggestPairs() {
-	pairs := query.GetPairsWithMostReserves()
-
-	for i := 0; i < len(pairs); i++ {
-		addresses.PAIR_ADDRESSES = append(addresses.PAIR_ADDRESSES, common.HexToAddress(pairs[i].Id))
-	}
-}
 
 func QueryBiggestTokens() {
 	// Alternative : you can query for the biggest pairs on Uniswap, then use these tokens that are probably liquids
@@ -62,10 +54,6 @@ func EvaluateArb(client *ethclient.Client) {
 	}
 
 	fmt.Println(graph, "\n\n\n", bestPath)
-
-	// amountsOut := arb.GetAllUniswapAmountOut(client, amount)
-	// bestOpportunity := arb.GetBestArbitrageOpportunity(client, amountsOut)
-	// fmt.Println(bestOpportunity)
 }
 
 func main() {
