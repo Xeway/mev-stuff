@@ -1,3 +1,5 @@
+// Arbitrage, hops between different asset (A->...->...->A) on the same exchange
+
 package main
 
 import (

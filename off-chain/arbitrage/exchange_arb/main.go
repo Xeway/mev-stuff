@@ -1,3 +1,5 @@
+// Arbitrage for the same pair (STABLE-WETH) on different exchanges
+
 package main
 
 import (
