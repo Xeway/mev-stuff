@@ -1,4 +1,4 @@
-package exchange_arb
+package main
 
 import (
 	"context"

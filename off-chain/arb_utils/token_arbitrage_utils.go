@@ -52,7 +52,7 @@ func GetAllRates(client *ethclient.Client, amount int64) [][]*big.Int {
 					} else {
 						res, err := instanceRouter.GetAmountsOut(options, amount, []common.Address{src.Address, dest.Address})
 						if err != nil {
-							rate = big.NewInt(0)
+							rate = big.NewInt(1)
 						} else {
 							rate = res[1]
 						}

@@ -1,4 +1,4 @@
-package token_arb
+package main
 
 import (
 	"context"
